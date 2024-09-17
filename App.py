@@ -2,10 +2,25 @@ import streamlit as st
 import pickle
 import string
 import spacy
-from spacy.lang.en.stop_words import STOP_WORDS
+import os
+
+# Define the spaCy model name
+MODEL_NAME = 'en_core_web_sm'
+
+
+# Ensure spaCy model is downloaded
+def ensure_spacy_model(model_name=MODEL_NAME):
+    try:
+        spacy.load(model_name)
+    except OSError:
+        os.system(f"python -m spacy download {model_name}")
+
+
+# Ensure the spaCy model is installed
+ensure_spacy_model()
 
 # Load spaCy's English tokenizer
-nlp = spacy.load('en_core_web_sm')
+nlp = spacy.load(MODEL_NAME)
 
 
 def transform_text(text):
@@ -14,24 +29,24 @@ def transform_text(text):
     tokens = [token.text for token in doc if token.is_alpha]  # Filter alphanumeric tokens
 
     # Remove stopwords and punctuation
-    filtered_tokens = [token for token in tokens if token not in STOP_WORDS and token not in string.punctuation]
+    filtered_tokens = [token for token in tokens if
+                       token not in nlp.Defaults.stop_words and token not in string.punctuation]
 
-    # Stem tokens
-    # Note: spaCy doesn't provide stemming; it uses lemmatization. If you specifically need stemming, you can use another library.
-    # For now, we skip stemming for simplicity.
+    # Note: spaCy uses lemmatization instead of stemming. If stemming is needed, use another library or approach.
 
     return " ".join(filtered_tokens)
 
 
+# Load the vectorizer and model
 tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
 model = pickle.load(open('model.pkl', 'rb'))
 
+# Streamlit app code
 st.title("Email/SMS Spam Classifier")
 
 input_sms = st.text_area("Enter the message")
 
 if st.button('Predict'):
-
     # 1. preprocess
     transformed_sms = transform_text(input_sms)
     # 2. vectorize
