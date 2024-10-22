@@ -1,6 +1,0 @@
-streamlit
-spacy==3.5.0
-thinc==8.1.0
-
-scikit-learn
-numpy
